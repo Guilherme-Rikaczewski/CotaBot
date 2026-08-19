@@ -1,0 +1,7 @@
+/venv
+venv
+.env
+env
+mypy_cache
+.mypy_cache
+/mypy_cache
