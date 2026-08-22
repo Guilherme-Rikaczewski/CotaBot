@@ -16,8 +16,6 @@ router = APIRouter(
     tags=["Coin"]
 )
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
-
 
 @router.get('/consult/{origin}/{target}')
 async def get_conversion(

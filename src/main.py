@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from src.db.session import engine
 from src.db.base import Base
 from src.routes import auth_routes
+from src.routes import user_routes
+from src.routes import coin_routes
 from contextlib import asynccontextmanager
 from src.cache.redis_client import connection
 
@@ -19,3 +21,5 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_routes.router)
+app.include_router(user_routes.router)
+app.include_router(coin_routes.router)
