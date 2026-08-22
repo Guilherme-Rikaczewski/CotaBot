@@ -11,11 +11,9 @@ class Coins(Base):
 
     coin_name_target = Column(String(50), nullable=False)
 
-    coin_origin_value = Column(String(30), nullable=False)
+    conversion_value = Column(String(30), nullable=False)
 
-    coin_target_value = Column(String(30), nullable=False)
-
-    request_at = Column(
+    created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False
