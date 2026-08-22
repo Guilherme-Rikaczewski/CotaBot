@@ -7,7 +7,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
 
-    username = Column(String(20), unique=True, nullable=False)
+    username = Column(String(20), nullable=False)
 
     email = Column(String(256), unique=True, nullable=False)
 
