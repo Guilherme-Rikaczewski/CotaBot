@@ -18,6 +18,13 @@ class UserCoins(Base):
 
     target_value_expected = Column(String(30), nullable=False)
 
+    # Preenchido quando o alvo é atingido; alertas já avisados não
+    # disparam de novo.
+    notified_at = Column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
