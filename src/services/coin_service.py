@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from src.integrations.awesome_api import get_last_quote
 from src.models.coins import Coins
 from src.schemas.quote_schema import Quote
-from src.schemas.coin_schema import Interval
+from src.schemas.coin_schema import Interval, CointAtInterval
 
 
 async def get_last_conversion_registered(
@@ -73,7 +73,7 @@ async def get_conversions_registered_in_x_days_with_y_interval(
     target: str,
     days: int,
     interval: Interval
-) -> list[dict]:
+) -> list[CointAtInterval]:
 
     now = datetime.now(timezone.utc)
     time_ago = now - timedelta(days=days)
