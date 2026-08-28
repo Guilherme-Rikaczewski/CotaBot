@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from src.integrations.awesome_api import get_last_quote
 from src.models.coins import Coins
 from src.schemas.quote_schema import Quote
+from src.schemas.coin_schema import Interval
 
 
 async def get_last_conversion_registered(
@@ -66,22 +67,24 @@ async def get_last_24_hours_conversions_registered(
     ]
 
 
-async def get_last_week_conversions_registered(
+async def get_conversions_registered_in_x_days_with_y_interval(
     db: AsyncSession,
     origin: str,
-    target: str
+    target: str,
+    days: int,
+    interval: Interval
 ) -> list[dict]:
 
     now = datetime.now(timezone.utc)
-    week_ago = now - timedelta(days=7)
+    time_ago = now - timedelta(days=days)
 
-    hour = func.date_trunc(
-        "hour",
+    time_interval = func.date_trunc(
+        interval.value,
         Coins.created_at
     )
 
     row_number = func.row_number().over(
-        partition_by=hour,
+        partition_by=time_interval,
         order_by=Coins.created_at.desc()
     ).label("row_number")
 
@@ -94,7 +97,7 @@ async def get_last_week_conversions_registered(
         .where(
             Coins.coin_name_origin == origin,
             Coins.coin_name_target == target,
-            Coins.created_at >= week_ago,
+            Coins.created_at >= time_ago,
         )
         .subquery()
     )

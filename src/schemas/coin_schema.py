@@ -1,5 +1,12 @@
 from datetime import datetime
 from pydantic import BaseModel
+from enum import Enum
+
+
+class Interval(Enum):
+    minute = 'minute'
+    hour = 'hour'
+    day = 'day'
 
 
 class CoinToCoinResponse(BaseModel):
