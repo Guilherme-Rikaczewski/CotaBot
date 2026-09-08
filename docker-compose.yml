@@ -1,9 +1,9 @@
 version: '3.9'
 
 services:
-  database:
+  databasecota:
     image: postgres:17
-    container_name: database
+    container_name: databasecota
     restart: always
     env_file:
       - .env
@@ -15,17 +15,19 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       retries: 5
+    ports:
+      - "5432:5432"
 
-  backend:
+  backendcota:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: backend
+    container_name: backendcota
     restart: always
     depends_on:
-      database:
+      databasecota:
         condition: service_healthy
-      redis:
+      rediscota:
         condition: service_healthy
     # para testar
     ports:
@@ -35,9 +37,9 @@ services:
     networks:
       - app_network
 
-  redis:
+  rediscota:
     image: redis:7.2-alpine
-    container_name: redis
+    container_name: rediscota
     command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
     volumes:
       - redis_data:/data
