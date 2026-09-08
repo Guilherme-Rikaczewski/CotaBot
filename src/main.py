@@ -1,6 +1,6 @@
 import asyncio
 from fastapi import FastAPI
-from src.db.session import engine
+from src.db.session import engine, SessionLocal
 from src.db.base import Base
 from src.routes import auth_routes
 from src.routes import user_routes
@@ -9,12 +9,15 @@ from src.routes import alert_routes
 from contextlib import asynccontextmanager, suppress
 from src.cache.redis_client import connection
 from src.setup.quote_collector import run_collector
-
+from src.setup.seed_coins import seed_coins
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    async with SessionLocal() as db:
+        await seed_coins(db)
 
     collector = asyncio.create_task(run_collector())
 
