@@ -13,7 +13,7 @@ from src.schemas.coin_schema import (
     CoinToCoinPeriodResponse
 )
 from src.services.coin_service import (
-    get_most_recent_conversion_registered,
+    get_last_conversion_registered,
     get_realtime_conversion,
     get_conversions_registered_in_x_days_with_y_interval
 )
@@ -24,8 +24,10 @@ router = APIRouter(
     tags=["Coin"]
 )
 
+# testado = rodei no insomnia e funcionou
 
-@router.get('/conversion/{origin}/{target}')
+
+@router.get('/conversion/{origin}/{target}')  # testado
 async def get_conversion(
     origin: str,
     target: str,
@@ -38,7 +40,7 @@ async def get_conversion(
                 detail='Invalid coins'
             )
 
-        conversion = await get_most_recent_conversion_registered(
+        conversion = await get_last_conversion_registered(
             db, origin, target
         )
 
@@ -53,7 +55,7 @@ async def get_conversion(
         )
 
 
-@router.get('/period/{origin}/{target}/{days}/{interval}')
+@router.get('/period/{origin}/{target}/{days}/{interval}')  # ajustar interval
 async def get_conversions_at_interval(
     origin: str,
     target: str,
@@ -88,7 +90,7 @@ async def get_conversions_at_interval(
 
 
 @router.get(
-    '/realtime/{origin}/{target}',
+    '/realtime/{origin}/{target}',  # testado
     response_model=RealtimeQuoteResponse,
     summary='Cotação em tempo real direto da AwesomeAPI'
 )
