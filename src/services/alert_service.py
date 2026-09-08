@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.integrations.awesome_api import get_last_quote
 from src.integrations.notifier import send_notification
 from src.models.messages import Message
 from src.models.user_coins import UserCoins
@@ -25,20 +24,7 @@ async def create_alert(
     user_id: int,
     data: AlertCreate
 ) -> UserCoins:
-    """Cadastra o valor-alvo escolhido pelo usuário.
-
-    Recusa alvos que a cotação atual já atingiu — nesse caso o alerta
-    dispararia no primeiro ciclo, o que não é o que o usuário quis
-    dizer ao pedir para ser avisado quando o valor for atingido.
-    """
-    quote = await get_last_quote(data.coin_name, ALERT_TARGET)
-
-    if quote.bid >= data.target_value_expected:
-        raise AlertAlreadyReachedError(
-            f'{data.coin_name} já está em {quote.bid}, '
-            f'igual ou acima do alvo {data.target_value_expected}'
-        )
-
+    """Cadastra o valor-alvo escolhido pelo usuário."""
     alert = UserCoins(
         user_id=user_id,
         coin_name=data.coin_name,
@@ -53,7 +39,9 @@ async def create_alert(
     return alert
 
 
-async def list_alerts(db: AsyncSession, user_id: int) -> list[UserCoins]:
+async def list_all_alerts_from_user(
+    db: AsyncSession, user_id: int
+) -> list[UserCoins]:
     result = await db.execute(
         select(UserCoins)
         .where(UserCoins.user_id == user_id)
@@ -82,7 +70,9 @@ async def delete_alert(db: AsyncSession, user_id: int, alert_id: int) -> bool:
     return True
 
 
-async def list_messages(db: AsyncSession, user_id: int) -> list[Message]:
+async def list_all_messages_from_user(
+    db: AsyncSession, user_id: int
+) -> list[Message]:
     result = await db.execute(
         select(Message)
         .where(Message.user_id == user_id)
@@ -108,7 +98,7 @@ async def _pending_alerts(db: AsyncSession) -> list[tuple[UserCoins, User]]:
         .where(UserCoins.notified_at.is_(None))
     )
 
-    return list(result.all())
+    return list(result.all())  # type:ignore
 
 
 async def check_alerts(
@@ -135,12 +125,12 @@ async def check_alerts(
     triggered: list[tuple[Message, User]] = []
 
     for alert, user in pending:
-        quote = by_coin.get(alert.coin_name)
+        quote = by_coin.get(alert.coin_name)  # type:ignore
 
         if quote is None:
             continue
 
-        if quote.bid < float(alert.target_value_expected):
+        if quote.bid != float(alert.target_value_expected):
             continue
 
         message = Message(
@@ -152,7 +142,7 @@ async def check_alerts(
 
         # Marca antes do commit para que o alerta não dispare de novo
         # no próximo ciclo, mesmo se a notificação falhar.
-        alert.notified_at = datetime.now(timezone.utc)
+        alert.notified_at = datetime.now(timezone.utc)  # type:ignore
 
         triggered.append((message, user))
 
@@ -163,7 +153,7 @@ async def check_alerts(
 
     for message, user in triggered:
         try:
-            await send_notification(user.email, message.message)
+            await send_notification(user.email, message.message)  # type:ignore
 
         except Exception as error:
             # A mensagem já está salva; o usuário a vê pelo histórico.
