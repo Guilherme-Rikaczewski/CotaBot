@@ -10,6 +10,7 @@ from src.models.user_coins import UserCoins
 from src.models.users import User
 from src.schemas.alert_schema import AlertCreate
 from src.schemas.quote_schema import Quote
+from src.services.coin_service import get_last_conversion_registered
 
 # Moeda de destino das cotações monitoradas.
 ALERT_TARGET = 'BRL'
@@ -24,11 +25,25 @@ async def create_alert(
     user_id: int,
     data: AlertCreate
 ) -> UserCoins:
-    """Cadastra o valor-alvo escolhido pelo usuário."""
+    """Cadastra o valor-alvo escolhido pelo usuário,
+    mas também define se espera uma queda ou uma subida."""
+
+    origin, target = data.coin_name.split('-')
+
+    current_value = await get_last_conversion_registered(
+        db, origin, target
+    )
+
+    if float(data.target_value_expected) > current_value:
+        expect = 'UP'
+    else:
+        expect = 'DOWN'
+
     alert = UserCoins(
         user_id=user_id,
         coin_name=data.coin_name,
-        target_value_expected=str(data.target_value_expected)
+        target_value_expected=str(data.target_value_expected),
+        expect=expect
     )
 
     db.add(alert)
@@ -101,6 +116,18 @@ async def _pending_alerts(db: AsyncSession) -> list[tuple[UserCoins, User]]:
     return list(result.all())  # type:ignore
 
 
+def should_notify(target: float, expect: str, bid: float) -> bool:
+    match expect:
+        case "UP":
+            if bid >= target:
+                return True
+        case "DOWN":
+            if bid <= target:
+                return True
+
+    return False
+
+
 async def check_alerts(
     db: AsyncSession,
     quotes: dict[str, Quote]
@@ -130,7 +157,9 @@ async def check_alerts(
         if quote is None:
             continue
 
-        if quote.bid != float(alert.target_value_expected):
+        target = float(alert.target_value_expected)
+
+        if not should_notify(target, alert.expect, quote.bid):  # type: ignore
             continue
 
         message = Message(
