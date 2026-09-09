@@ -18,6 +18,8 @@ class UserCoins(Base):
 
     target_value_expected = Column(String(30), nullable=False)
 
+    expect = Column(String(4), nullable=False)
+
     # Preenchido quando o alvo é atingido; alertas já avisados não
     # disparam de novo.
     notified_at = Column(
