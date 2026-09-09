@@ -101,21 +101,42 @@ async def _pending_alerts(db: AsyncSession) -> list[tuple[UserCoins, User]]:
     return list(result.all())  # type:ignore
 
 
+def target_was_crossed(
+    previous: float,
+    current: float,
+    target: float
+) -> bool:
+    """Indica se o alvo ficou entre a cotação anterior e a atual.
+
+    Comparar a cotação com o alvo por igualdade não funciona: o `bid`
+    tem quatro casas decimais e o alvo é um valor redondo escolhido pelo
+    usuário, então a coincidência exata praticamente nunca acontece.
+    O que interessa é o alvo ter sido *atravessado* entre duas leituras,
+    o que cobre tanto a alta quanto a queda.
+    """
+    return min(previous, current) <= target <= max(previous, current)
+
+
 async def check_alerts(
     db: AsyncSession,
-    quotes: dict[str, Quote]
+    quotes: dict[str, Quote],
+    previous_prices: dict[str, float] | None = None
 ) -> list[Message]:
-    """Dispara os alertas cujo valor-alvo foi atingido.
+    """Dispara os alertas cujo valor-alvo foi cruzado.
 
     Recebe as cotações já buscadas pelo coletor (indexadas por par, no
-    formato "USD-BRL") para não gastar requisição extra na AwesomeAPI.
-    Para cada alvo atingido: grava a mensagem, marca o alerta como
+    formato "USD-BRL") para não gastar requisição extra na AwesomeAPI, e
+    os preços da coleta anterior por moeda, que definem o intervalo
+    percorrido desde o último ciclo.
+    Para cada alvo cruzado: grava a mensagem, marca o alerta como
     avisado e envia a notificação.
     """
     pending = await _pending_alerts(db)
 
     if not pending:
         return []
+
+    previous_prices = previous_prices or {}
 
     by_coin = {
         pair.split('-')[0]: quote
@@ -130,7 +151,18 @@ async def check_alerts(
         if quote is None:
             continue
 
-        if quote.bid != float(alert.target_value_expected):
+        previous = previous_prices.get(alert.coin_name)  # type:ignore
+
+        # Sem leitura anterior não há intervalo para comparar; o alerta
+        # espera o próximo ciclo, quando já haverá cotação gravada.
+        if previous is None:
+            continue
+
+        if not target_was_crossed(
+            previous,
+            quote.bid,
+            float(alert.target_value_expected)
+        ):
             continue
 
         message = Message(
