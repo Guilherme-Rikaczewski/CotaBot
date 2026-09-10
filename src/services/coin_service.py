@@ -5,6 +5,7 @@ from src.integrations.awesome_api import get_last_quote
 from src.models.coins import Coins
 from src.schemas.quote_schema import Quote
 from src.schemas.coin_schema import Interval, CointAtInterval
+from src.utils.money import format_conversion
 
 
 async def get_last_conversion_registered(
@@ -145,7 +146,7 @@ async def get_realtime_conversion(
             Coins(
                 coin_name_origin=origin.strip().upper(),
                 coin_name_target=target.strip().upper(),
-                conversion_value=str(quote.bid),
+                conversion_value=format_conversion(quote.bid),
                 created_at=quote.timestamp.astimezone()
             )
         )

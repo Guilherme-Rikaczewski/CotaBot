@@ -127,27 +127,19 @@ def should_notify(target: float, expect: str, bid: float) -> bool:
 
     return False
 
-
 def target_was_crossed(
     previous: float,
     current: float,
     target: float
 ) -> bool:
     """Indica se o alvo ficou entre a cotação anterior e a atual.
-
-    Comparar a cotação com o alvo por igualdade não funciona: o `bid`
-    tem quatro casas decimais e o alvo é um valor redondo escolhido pelo
-    usuário, então a coincidência exata praticamente nunca acontece.
-    O que interessa é o alvo ter sido *atravessado* entre duas leituras,
-    o que cobre tanto a alta quanto a queda.
+    ...
     """
     return min(previous, current) <= target <= max(previous, current)
 
-
 async def check_alerts(
     db: AsyncSession,
-    quotes: dict[str, Quote],
-    previous_prices: dict[str, float] | None = None
+    quotes: dict[str, Quote]
 ) -> list[Message]:
     """Dispara os alertas cujo valor-alvo foi cruzado.
 
@@ -162,8 +154,6 @@ async def check_alerts(
 
     if not pending:
         return []
-
-    previous_prices = previous_prices or {}
 
     by_coin = {
         pair.split('-')[0]: quote

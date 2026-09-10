@@ -22,6 +22,7 @@ from src.integrations.awesome_api import AwesomeAPIError, get_last_quotes
 from src.models.coins import Coins
 from src.services.alert_service import check_alerts
 from src.setup.seed_coins import SEED_ORIGINS, SEED_TARGET
+from src.utils.money import format_conversion
 
 # Pares monitorados — os mesmos populados pelo seed.
 TRACKED_ORIGINS = SEED_ORIGINS
@@ -100,7 +101,7 @@ async def collect_quotes(db: AsyncSession) -> tuple[int, int]:
             Coins(
                 coin_name_origin=origin,
                 coin_name_target=TRACKED_TARGET,
-                conversion_value=str(quote.bid),
+                conversion_value=format_conversion(quote.bid),
                 created_at=created_at
             )
         )
@@ -111,12 +112,7 @@ async def collect_quotes(db: AsyncSession) -> tuple[int, int]:
 
     # Os alertas são checados mesmo sem cotação nova: um alerta pode ter
     # sido cadastrado depois da última variação do par.
-    previous_prices = {
-        origin: value
-        for origin, (_, value) in last_saved.items()
-    }
-
-    messages = await check_alerts(db, quotes, previous_prices)
+    messages = await check_alerts(db, quotes)
 
     return len(rows), len(messages)
 

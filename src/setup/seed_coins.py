@@ -27,6 +27,7 @@ from src.integrations.awesome_api import (
 )
 from src.models.coins import Coins
 from src.schemas.quote_schema import Quote
+from src.utils.money import format_conversion
 
 # Moedas de origem populadas, sempre convertidas para BRL.
 SEED_ORIGINS = ('USD', 'EUR', 'BTC')
@@ -62,7 +63,7 @@ def _to_row(quote: Quote, origin: str, target: str) -> Coins:
     return Coins(
         coin_name_origin=origin,
         coin_name_target=target,
-        conversion_value=str(quote.bid),
+        conversion_value=format_conversion(quote.bid),
         created_at=created_at
     )
 
