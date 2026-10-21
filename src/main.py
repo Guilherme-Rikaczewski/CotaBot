@@ -10,6 +10,13 @@ from contextlib import asynccontextmanager, suppress
 from src.cache.redis_client import connection
 from src.setup.quote_collector import run_collector
 from src.setup.seed_coins import seed_coins
+from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,7 +38,23 @@ async def lifespan(app: FastAPI):
     await connection.aclose()
 
 
+_ORIGENS_PADRAO = "http://localhost:5173,http://localhost:3000,http://localhost:8080"
+
+
+def origens_permitidas() -> list[str]:
+    bruto = os.getenv("CORS_ORIGINS", _ORIGENS_PADRAO)
+    return [origem.strip() for origem in bruto.split(",") if origem.strip()]
+
+
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origens_permitidas(),
+    allow_credentials=False,
+    allow_methods=["GET", "OPTIONS"],  # a API é somente leitura
+    allow_headers=["*"],
+)
 
 app.include_router(auth_routes.router)
 app.include_router(user_routes.router)
