@@ -54,6 +54,40 @@ async def create_alert(
     return alert
 
 
+async def create_alert_by_bot(
+    db: AsyncSession,
+    email_by_bot: str,
+    data: AlertCreate
+) -> UserCoins:
+    """Cadastra o valor-alvo escolhido pelo usuário através do bot de discord,
+    mas também define se espera uma queda ou uma subida."""
+
+    origin, target = data.coin_name.split('-')
+
+    current_value = await get_last_conversion_registered(
+        db, origin, target
+    )
+
+    if float(data.target_value_expected) > current_value:
+        expect = 'UP'
+    else:
+        expect = 'DOWN'
+
+    alert = UserCoins(
+        email_by_bot=email_by_bot,
+        coin_name=data.coin_name,
+        target_value_expected=str(data.target_value_expected),
+        expect=expect
+    )
+
+    db.add(alert)
+
+    await db.commit()
+    await db.refresh(alert)
+
+    return alert
+
+
 async def list_all_alerts_from_user(
     db: AsyncSession, user_id: int
 ) -> list[UserCoins]:
@@ -105,6 +139,7 @@ def build_alert_message(alert: UserCoins, quote: Quote) -> str:
     )
 
 
+# Alterar logica para emails de alertas cadastrados pelo Bot de discord
 async def _pending_alerts(db: AsyncSession) -> list[tuple[UserCoins, User]]:
     """Alertas ainda não avisados, junto do usuário dono de cada um."""
     result = await db.execute(
@@ -137,6 +172,7 @@ def target_was_crossed(
     """
     return min(previous, current) <= target <= max(previous, current)
 
+# Alterar logica para emails de alertas cadastrados pelo Bot de discord
 async def check_alerts(
     db: AsyncSession,
     quotes: dict[str, Quote]
