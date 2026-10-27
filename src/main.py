@@ -6,6 +6,7 @@ from src.routes import auth_routes
 from src.routes import user_routes
 from src.routes import coin_routes
 from src.routes import alert_routes
+from src.routes import webhook
 from contextlib import asynccontextmanager, suppress
 from src.cache.redis_client import connection
 from src.setup.quote_collector import run_collector
@@ -50,9 +51,10 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origens_permitidas(),
+    # allow_origins=origens_permitidas(),
+    allow_origins=["*"],  # para testes
     allow_credentials=False,
-    allow_methods=["GET", "OPTIONS"],  # a API é somente leitura
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -60,3 +62,4 @@ app.include_router(auth_routes.router)
 app.include_router(user_routes.router)
 app.include_router(coin_routes.router)
 app.include_router(alert_routes.router)
+app.include_router(webhook.router)

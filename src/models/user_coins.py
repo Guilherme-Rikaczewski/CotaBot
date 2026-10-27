@@ -10,9 +10,10 @@ class UserCoins(Base):
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
         index=True
     )
+
+    email_by_bot = Column(String(256), index=True)
 
     coin_name = Column(String(50), nullable=False)
 

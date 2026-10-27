@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DateTime, func, Text, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, func, Text, ForeignKey, String
 from src.db.base import Base
 
 
@@ -10,9 +10,10 @@ class Message(Base):
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
         index=True
     )
+
+    email_by_bot = Column(String(256), index=True)
 
     message = Column(Text, nullable=False, default='')
 
