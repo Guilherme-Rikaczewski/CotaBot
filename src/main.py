@@ -39,7 +39,10 @@ async def lifespan(app: FastAPI):
     await connection.aclose()
 
 
-_ORIGENS_PADRAO = "http://localhost:5173,http://localhost:3000,http://localhost:8080"
+_ORIGENS_PADRAO = (
+    "http://localhost:5173,http://localhost:5174,"
+    "http://localhost:3000,http://localhost:8080"
+)
 
 
 def origens_permitidas() -> list[str]:
@@ -51,9 +54,11 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=origens_permitidas(),
-    allow_origins=["*"],  # para testes
-    allow_credentials=False,
+    # A autenticação usa cookie httpOnly: o navegador só o envia entre
+    # origens se `allow_credentials` estiver ligado, e isso é proibido
+    # junto de "*" — daí a lista explícita.
+    allow_origins=origens_permitidas(),
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
