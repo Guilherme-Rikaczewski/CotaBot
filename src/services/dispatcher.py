@@ -1,7 +1,7 @@
 from src.schemas.discord import (
     DiscordInteraction,
 )
-from src.services.alert_bot_service import AlertBotService
+from src.services.alert_bot_service import AlertBotService, DailyBotService
 from src.utils.response_builder import ResponseBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class CommandDispatcher:
     def __init__(self):
         self.handlers = {
-            "alert": AlertBotService()
+            "alert": AlertBotService(),
+            "daily": DailyBotService()
+
         }
 
     async def dispatch(
