@@ -62,7 +62,7 @@ async def read_all(
     db: AsyncSession = Depends(get_db)
 ):
 
-    return await alerts.list_alerts(db, user_id)
+    return await alerts.list_all_alerts_from_user(db, user_id)
 
 
 @router.delete('/{alert_id}', status_code=204)
@@ -91,4 +91,4 @@ async def read_messages(
     db: AsyncSession = Depends(get_db)
 ):
 
-    return await alerts.list_messages(db, user_id)
+    return await alerts.list_all_messages_from_user(db, user_id)
