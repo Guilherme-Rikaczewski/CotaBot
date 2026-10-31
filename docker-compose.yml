@@ -1,6 +1,16 @@
 version: '3.9'
 
 services:
+  frontcotabot:
+    image: guilhermerikaczewski/cotabot-frontend:latest
+    restart: always
+    container_name: frontcotabot
+    ports:
+      - "80:80"
+    networks:
+      - app_network
+
+  
   databasecota:
     image: postgres:17
     container_name: databasecota
@@ -19,10 +29,11 @@ services:
       - "5432:5432"
 
   backendcota:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+      # context: .
+      # dockerfile: Dockerfile
     container_name: backendcota
+    image: guilhermerikaczewski/cotabot-backend:latest
     restart: always
     depends_on:
       databasecota:

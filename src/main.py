@@ -57,7 +57,8 @@ app.add_middleware(
     # A autenticação usa cookie httpOnly: o navegador só o envia entre
     # origens se `allow_credentials` estiver ligado, e isso é proibido
     # junto de "*" — daí a lista explícita.
-    allow_origins=origens_permitidas(),
+    # allow_origins=origens_permitidas(),
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
