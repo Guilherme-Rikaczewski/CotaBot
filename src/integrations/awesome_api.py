@@ -21,18 +21,30 @@ class AwesomeAPIError(Exception):
     """Erro de comunicação com a AwesomeAPI."""
 
 
+# def _build_client() -> httpx.AsyncClient:
+#     headers = {'Accept': 'application/json'}
+
+#     if AWESOME_API_TOKEN:
+#         headers['Authorization'] = f'Bearer {AWESOME_API_TOKEN}'
+
+#     return httpx.AsyncClient(
+#         base_url=AWESOME_API_URL,
+#         headers=headers,
+#         timeout=AWESOME_API_TIMEOUT
+#     )
 def _build_client() -> httpx.AsyncClient:
-    headers = {'Accept': 'application/json'}
+    headers = {
+        'Accept': 'application/json'
+    }
 
     if AWESOME_API_TOKEN:
-        headers['Authorization'] = f'Bearer {AWESOME_API_TOKEN}'
+        headers['x-api-key'] = AWESOME_API_TOKEN
 
     return httpx.AsyncClient(
         base_url=AWESOME_API_URL,
         headers=headers,
         timeout=AWESOME_API_TIMEOUT
     )
-
 
 async def _request(path: str) -> dict | list:
     try:
