@@ -20,31 +20,41 @@ headers = {
 #     "description": "Responde Pong!"
 # }
 
-data = {
-    "name": "alert",
-    "description": "Faz uma rolagem de dados!",
-    "options": [
-        {
-            "name": "email",
-            "description": "email para notificação",
-            "type": 3,
-            "required": True
-        },
-        {
-            "name": "moeda",
-            "description": "moeda alvo (USD-BRL, EUR-BRL, BTC-BRL)",
-            "type": 3,
-            "required": True
-        },
-        {
-            "name": "valor",
-            "description": "valor esperado para a notificação",
-            "type": 3,
-            "required": True
-        },
-    ]
-}
-response = requests.post(url, headers=headers, json=data)
+commands = [
+    {
+        "name": "alert",
+        "description": "Cria um alerta de cotação avisado por e-mail",
+        "options": [
+            {
+                "name": "email",
+                "description": "email para notificação",
+                "type": 3,
+                "required": True
+            },
+            {
+                "name": "moeda",
+                "description": "moeda alvo (USD-BRL, EUR-BRL, BTC-BRL)",
+                "type": 3,
+                "required": True
+            },
+            {
+                "name": "valor",
+                "description": "valor esperado para a notificação",
+                "type": 3,
+                "required": True
+            },
+        ]
+    },
+    {
+        "name": "daily",
+        "description": "Resumo do dia: abertura, última cotação e variação"
+    },
+]
 
-print(response.status_code)
-print(response.json())
+# Cada comando é registrado individualmente; o endpoint de guild aceita
+# um POST por comando (o PUT em lote substituiria todos de uma vez).
+for command in commands:
+    response = requests.post(url, headers=headers, json=command)
+
+    print(command["name"], response.status_code)
+    print(response.json())
